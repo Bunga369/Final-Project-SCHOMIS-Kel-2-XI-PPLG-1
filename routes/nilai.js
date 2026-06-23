@@ -7,8 +7,9 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-
-const KKM = 79; // Nilai buat kkm
+ 
+// Bagian buat mengubah KKM 
+const KKM = 79; 
 
 router.get('/kelas/:kelasId', async (req, res) => {
     try {

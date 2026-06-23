@@ -1,14 +1,8 @@
+// public/js/manajemen-siswa.js
 
+// Ambil kelas_id dari URL kalau ada (?kelas_id=1), kalau tidak ada akan dipilih otomatis
 const urlParams = new URLSearchParams(window.location.search);
-const kelasId = urlParams.get('kelas_id');
-const namaKelas = urlParams.get('nama_kelas') || '-';
-
-
-if (!kelasId) {
-    window.location.href = '/manajemen-kelas.html';
-}
-
-document.getElementById('namaKelasLabel').textContent = namaKelas;
+let kelasIdAktif = urlParams.get('kelas_id');
 
 const tabelSiswa = document.getElementById('tabelSiswa');
 const emptyState = document.getElementById('emptyState');
@@ -17,18 +11,82 @@ const formSiswa = document.getElementById('formSiswa');
 const modalTitle = document.getElementById('modalTitle');
 const pesanModal = document.getElementById('pesanModal');
 const filterTanggal = document.getElementById('filterTanggal');
+const dropdownToggle = document.getElementById('dropdownToggle');
+const dropdownMenu = document.getElementById('dropdownMenu');
 
+let daftarKelas = [];
 
+// Default tanggal = hari ini
 function tanggalHariIni() {
     return new Date().toISOString().slice(0, 10);
 }
 filterTanggal.value = tanggalHariIni();
 
+// Ambil semua kelas untuk mengisi dropdown pemilih kelas di pojok kanan atas.
+// Kalau dibuka tanpa kelas_id di URL (misal langsung dari sidebar), otomatis pakai kelas pertama.
+async function muatDaftarKelasUntukDropdown() {
+    try {
+        const response = await fetch('/api/kelas');
+        if (response.status === 401) {
+            window.location.href = '/login.html';
+            return;
+        }
+        daftarKelas = await response.json();
 
+        if (daftarKelas.length === 0) {
+            dropdownToggle.textContent = 'Belum ada kelas';
+            tabelSiswa.innerHTML = '';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        if (!kelasIdAktif) {
+            kelasIdAktif = daftarKelas[0].id;
+        }
+
+        renderDropdownMenu();
+        perbaruiLabelKelasAktif();
+        muatDaftarSiswa();
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+function renderDropdownMenu() {
+    dropdownMenu.innerHTML = daftarKelas.map((k) => `
+        <a href="#" onclick="gantiKelas(${k.id}); return false;">${k.nama_kelas}</a>
+    `).join('');
+}
+
+function perbaruiLabelKelasAktif() {
+    const kelas = daftarKelas.find((k) => k.id == kelasIdAktif);
+    dropdownToggle.innerHTML = `${kelas ? kelas.nama_kelas : '-'} &#9662;`;
+}
+
+function gantiKelas(id) {
+    kelasIdAktif = id;
+    perbaruiLabelKelasAktif();
+    dropdownMenu.classList.remove('show');
+    muatDaftarSiswa();
+}
+
+// Toggle buka/tutup dropdown
+dropdownToggle.addEventListener('click', () => {
+    dropdownMenu.classList.toggle('show');
+});
+
+// Klik di luar dropdown -> tutup
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.kelas-dropdown')) {
+        dropdownMenu.classList.remove('show');
+    }
+});
+
+// Muat daftar siswa untuk kelas ini, sesuai tanggal yang dipilih
 async function muatDaftarSiswa() {
     try {
         const tanggal = filterTanggal.value;
-        const response = await fetch(`/api/siswa/kelas/${kelasId}?tanggal=${tanggal}`);
+        const response = await fetch(`/api/siswa/kelas/${kelasIdAktif}?tanggal=${tanggal}`);
         if (response.status === 401) {
             window.location.href = '/login.html';
             return;
@@ -72,7 +130,7 @@ async function muatDaftarSiswa() {
     }
 }
 
-
+// Klik badge status -> langsung toggle antara Hadir / Tidak Hadir untuk tanggal yang aktif
 async function toggleAbsensi(siswaId, statusSekarang) {
     const statusBaru = statusSekarang === 'Hadir' ? 'Tidak Hadir' : 'Hadir';
     try {
@@ -92,10 +150,10 @@ async function toggleAbsensi(siswaId, statusSekarang) {
     }
 }
 
-
+// Ganti tanggal -> muat ulang data absensi untuk tanggal itu
 filterTanggal.addEventListener('change', muatDaftarSiswa);
 
-
+// Buka modal tambah siswa
 document.getElementById('btnTambahSiswa').addEventListener('click', () => {
     modalTitle.textContent = 'Tambah Siswa';
     document.getElementById('siswaId').value = '';
@@ -107,7 +165,7 @@ document.getElementById('btnTambahSiswa').addEventListener('click', () => {
     modalSiswa.classList.add('show');
 });
 
-
+// Buka modal edit siswa (data sudah ada di tabel, tidak perlu fetch ulang)
 function bukaModalEdit(siswa) {
     modalTitle.textContent = 'Edit Siswa';
     document.getElementById('siswaId').value = siswa.id;
@@ -123,7 +181,7 @@ document.getElementById('btnBatalModal').addEventListener('click', () => {
     modalSiswa.classList.remove('show');
 });
 
-
+// Submit form tambah/edit siswa
 formSiswa.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -143,7 +201,7 @@ formSiswa.addEventListener('submit', async (e) => {
         const method = id ? 'PUT' : 'POST';
         const body = id
             ? { nis, nama, tanggal_lahir, jenis_kelamin }
-            : { kelas_id: kelasId, nis, nama, tanggal_lahir, jenis_kelamin };
+            : { kelas_id: kelasIdAktif, nis, nama, tanggal_lahir, jenis_kelamin };
 
         const response = await fetch(url, {
             method,
@@ -165,7 +223,7 @@ formSiswa.addEventListener('submit', async (e) => {
     }
 });
 
-
+// Hapus siswa
 async function hapusSiswa(id, nama) {
     const konfirmasi = confirm(`Hapus siswa "${nama}" dari kelas ini?`);
     if (!konfirmasi) return;
@@ -183,4 +241,4 @@ async function hapusSiswa(id, nama) {
     }
 }
 
-muatDaftarSiswa();
+muatDaftarKelasUntukDropdown();
