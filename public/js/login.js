@@ -1,5 +1,3 @@
-
-
 const formLogin = document.getElementById('formLogin');
 const pesan = document.getElementById('pesan');
 
@@ -27,7 +25,6 @@ formLogin.addEventListener('submit', async (e) => {
         if (response.ok) {
             pesan.textContent = 'Login berhasil! Mengarahkan...';
             pesan.className = 'message success';
-            // Setelah login berhasil, langsung ke Manajemen Kelas (sesuai alur aplikasi)
             window.location.href = '/manajemen-kelas.html';
         } else {
             pesan.textContent = data.message || 'Login gagal.';

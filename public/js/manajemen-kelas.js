@@ -1,4 +1,3 @@
-
 const tabelKelas = document.getElementById('tabelKelas');
 const emptyState = document.getElementById('emptyState');
 const modalKelas = document.getElementById('modalKelas');

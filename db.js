@@ -1,7 +1,3 @@
-// db.js
-// File ini bertugas membuat koneksi (pool) ke database MySQL
-// supaya bisa dipakai di file lain (routes, dll) tanpa connect berulang-ulang
-
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 

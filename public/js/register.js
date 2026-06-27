@@ -1,5 +1,3 @@
-
-
 const formRegister = document.getElementById('formRegister');
 const pesan = document.getElementById('pesan');
 

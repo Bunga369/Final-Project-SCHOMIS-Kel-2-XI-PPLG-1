@@ -21,24 +21,12 @@
             </div>
 
             <div class="panel">
-                <div class="panel-toolbar" style="justify-content: flex-end;">
+                <div class="panel-toolbar">
+                    <button class="btn-tambah" id="btnTambahMapel">+ Tambah Mapel</button>
                     <a href="#" id="linkKenaikanKelas" class="btn-tambah" style="text-decoration:none; display:inline-block;">Data Kenaikan Kelas</a>
                 </div>
                 <table>
-                    <thead>
-                        <tr>
-                            <th rowspan="2" style="vertical-align: middle;">NIS</th>
-                            <th rowspan="2" style="vertical-align: middle;">Nama</th>
-                            <th colspan="3" style="text-align:center;">Mata Pelajaran</th>
-                            <th rowspan="2" style="vertical-align: middle;">Rata Rata</th>
-                            <th rowspan="2" style="vertical-align: middle;">Aksi</th>
-                        </tr>
-                        <tr>
-                            <th>Matematika</th>
-                            <th>B.Inggris</th>
-                            <th>B.Indonesia</th>
-                        </tr>
-                    </thead>
+                    <thead id="theadNilai"></thead>
                     <tbody id="tabelNilai"></tbody>
                 </table>
                 <p class="empty-state" id="emptyState" style="display:none;">Belum ada siswa di kelas ini.</p>
@@ -46,7 +34,6 @@
         </main>
     </div>
 
-    <!-- MODAL EDIT NILAI -->
     <div class="modal-overlay" id="modalNilai">
         <div class="modal-box">
             <h2>Edit Nilai</h2>
@@ -63,23 +50,27 @@
                     </div>
                 </div>
                 <p style="font-weight:600; margin: 0.8rem 0 0.5rem; font-size:0.9rem;">Mata Pelajaran</p>
-                <div class="modal-grid" style="grid-template-columns: 1fr 1fr 1fr;">
-                    <div class="form-group">
-                        <label for="nilaiMatematika">Matematika</label>
-                        <input type="number" id="nilaiMatematika" min="0" max="100" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="nilaiInggris">B.Inggris</label>
-                        <input type="number" id="nilaiInggris" min="0" max="100" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="nilaiIndonesia">B.Indonesia</label>
-                        <input type="number" id="nilaiIndonesia" min="0" max="100" required>
-                    </div>
-                </div>
+                <div class="modal-grid" id="containerNilaiMapel" style="grid-template-columns: 1fr 1fr;"></div>
                 <p class="message error" id="pesanModal"></p>
                 <div class="modal-actions">
                     <button type="button" class="btn-batal" id="btnBatalModal">Batal</button>
+                    <button type="submit" class="btn-simpan">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalMapel">
+        <div class="modal-box">
+            <h2>Tambah Mata Pelajaran</h2>
+            <form id="formMapel">
+                <div class="form-group">
+                    <label for="namaMapelBaru">Nama Mata Pelajaran</label>
+                    <input type="text" id="namaMapelBaru" placeholder="Contoh: Fisika" required>
+                </div>
+                <p class="message error" id="pesanModalMapel"></p>
+                <div class="modal-actions">
+                    <button type="button" class="btn-batal" id="btnBatalModalMapel">Batal</button>
                     <button type="submit" class="btn-simpan">Simpan</button>
                 </div>
             </form>

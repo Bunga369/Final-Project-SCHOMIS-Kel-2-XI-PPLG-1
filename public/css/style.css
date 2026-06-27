@@ -1,5 +1,3 @@
-
-
 :root {
     --navy-dark: #10133f;
     --navy-light: #1c2570;
@@ -84,7 +82,7 @@ body {
     font-size: 1rem;
 }
 
-/* Welcome page - varian gradient biru */
+
 .welcome-card {
     background: #fff;
     border-radius: 20px;
@@ -159,7 +157,7 @@ body {
     opacity: 0.92;
 }
 
-/* Form input umum */
+
 .form-group {
     margin-bottom: 1.2rem;
 }

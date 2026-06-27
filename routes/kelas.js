@@ -1,16 +1,8 @@
-// routes/kelas.js
-// Endpoint untuk Manajemen Kelas:
-// - GET    /api/kelas        -> ambil semua kelas (+ jumlah siswa)
-// - GET    /api/kelas/:id    -> ambil 1 kelas
-// - POST   /api/kelas        -> tambah kelas baru
-// - PUT    /api/kelas/:id    -> edit kelas
-// - DELETE /api/kelas/:id    -> hapus kelas
-
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 
-// Ambil semua kelas, sekaligus hitung jumlah siswa di tiap kelas
+
 router.get('/', async (req, res) => {
     try {
         const [rows] = await pool.query(`
@@ -28,7 +20,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Ambil 1 kelas berdasarkan id (dipakai saat buka modal edit)
 router.get('/:id', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM kelas WHERE id = ?', [req.params.id]);
@@ -42,7 +33,6 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Tambah kelas baru
 router.post('/', async (req, res) => {
     try {
         const { nama_kelas, wali_kelas } = req.body;
@@ -60,7 +50,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Edit kelas
+
 router.put('/:id', async (req, res) => {
     try {
         const { nama_kelas, wali_kelas } = req.body;
@@ -78,7 +68,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Hapus kelas (otomatis ikut menghapus siswa di kelas itu, karena ON DELETE CASCADE)
+
 router.delete('/:id', async (req, res) => {
     try {
         await pool.query('DELETE FROM kelas WHERE id = ?', [req.params.id]);

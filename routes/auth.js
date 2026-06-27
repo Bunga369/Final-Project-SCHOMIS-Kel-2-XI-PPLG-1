@@ -1,19 +1,8 @@
-// routes/auth.js
-// File ini berisi semua "pintu" (endpoint) yang berhubungan dengan akun:
-// - POST /api/register  -> bikin akun admin baru (sementara, untuk setup awal)
-// - POST /api/login      -> proses login
-// - POST /api/logout     -> proses logout
-// - GET  /api/me         -> cek siapa yang sedang login
-
 const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
 const pool = require('../db');
 
-// ---------------------------------------------------
-// REGISTER - untuk membuat akun admin/guru baru
-// Setelah berhasil, user langsung di-auto-login (sesuai alur di Figma)
-// ---------------------------------------------------
 router.post('/register', async (req, res) => {
     try {
         const { nama, email, username, password } = req.body;
@@ -22,7 +11,6 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ message: 'Semua field harus diisi.' });
         }
 
-        // Cek apakah username atau email sudah dipakai
         const [existing] = await pool.query(
             'SELECT id FROM admin WHERE username = ? OR email = ?',
             [username, email]
@@ -31,7 +19,6 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ message: 'Username atau email sudah dipakai.' });
         }
 
-        // Hash password sebelum disimpan (JANGAN PERNAH simpan password asli ke database)
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const [result] = await pool.query(
@@ -39,7 +26,6 @@ router.post('/register', async (req, res) => {
             [nama, email, username, hashedPassword]
         );
 
-        // Auto-login: langsung buat session setelah akun berhasil dibuat
         req.session.userId = result.insertId;
         req.session.nama = nama;
         req.session.username = username;
@@ -51,9 +37,6 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// ---------------------------------------------------
-// LOGIN
-// ---------------------------------------------------
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -78,7 +61,6 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Username atau password salah.' });
         }
 
-        // Simpan info login ke session
         req.session.userId = user.id;
         req.session.nama = user.nama;
         req.session.username = user.username;
@@ -90,9 +72,6 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// ---------------------------------------------------
-// LOGOUT
-// ---------------------------------------------------
 router.post('/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
@@ -103,9 +82,53 @@ router.post('/logout', (req, res) => {
     });
 });
 
-// ---------------------------------------------------
-// CEK SIAPA YANG SEDANG LOGIN (dipakai dashboard untuk menyapa user)
-// ---------------------------------------------------
+router.post('/verifikasi-akun', async (req, res) => {
+    try {
+        const { username, email } = req.body;
+
+        if (!username || !email) {
+            return res.status(400).json({ message: 'Username dan email harus diisi.' });
+        }
+
+        const [rows] = await pool.query(
+            'SELECT id FROM admin WHERE username = ? AND email = ?',
+            [username, email]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Username dan email tidak cocok dengan data yang terdaftar.' });
+        }
+
+        return res.status(200).json({ message: 'Verifikasi berhasil.', userId: rows[0].id });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Terjadi kesalahan server.' });
+    }
+});
+
+router.post('/reset-password', async (req, res) => {
+    try {
+        const { userId, passwordBaru } = req.body;
+
+        if (!userId || !passwordBaru) {
+            return res.status(400).json({ message: 'Data tidak lengkap.' });
+        }
+
+        if (passwordBaru.length < 6) {
+            return res.status(400).json({ message: 'Password minimal 6 karakter.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(passwordBaru, 10);
+
+        await pool.query('UPDATE admin SET password = ? WHERE id = ?', [hashedPassword, userId]);
+
+        return res.status(200).json({ message: 'Password berhasil diubah.' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Terjadi kesalahan server.' });
+    }
+});
+
 router.get('/me', (req, res) => {
     if (req.session && req.session.userId) {
         return res.status(200).json({

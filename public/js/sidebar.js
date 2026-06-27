@@ -33,7 +33,6 @@ function renderSidebar(halamanAktif) {
         } catch (err) {
             console.error(err);
         }
-        // Apapun hasilnya, tetap arahkan ke halaman welcome
         window.location.href = '/index.html';
     });
 }

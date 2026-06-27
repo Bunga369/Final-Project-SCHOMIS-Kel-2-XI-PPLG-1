@@ -1,7 +1,3 @@
-// server.js
-// Ini adalah file utama yang menjalankan server.
-// Jalankan dengan: npm run dev  (atau: npm start)
-
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
@@ -23,7 +19,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        maxAge: 1000 * 60 * 60 * 2, // session bertahan 2 jam
+        maxAge: 1000 * 60 * 60 * 2, 
     },
 }));
 

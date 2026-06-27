@@ -1,17 +1,7 @@
-// routes/siswa.js
-// Endpoint untuk Manajemen Siswa & Absensi:
-// - GET    /api/siswa/kelas/:kelasId?tanggal=YYYY-MM-DD  -> daftar siswa di kelas + status absen tanggal itu
-// - POST   /api/siswa                                     -> tambah siswa baru
-// - PUT    /api/siswa/:id                                  -> edit data siswa
-// - DELETE /api/siswa/:id                                  -> hapus siswa
-// - PUT    /api/siswa/:id/absensi                          -> ubah status hadir/tidak hadir untuk tanggal tertentu
-
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 
-// Ambil semua siswa dalam 1 kelas, lengkap dengan status absensi pada tanggal tertentu
-// Kalau belum ada data absensi di tanggal itu, statusnya dianggap "Hadir" (default)
 router.get('/kelas/:kelasId', async (req, res) => {
     try {
         const { kelasId } = req.params;
@@ -33,7 +23,6 @@ router.get('/kelas/:kelasId', async (req, res) => {
     }
 });
 
-// Tambah siswa baru ke sebuah kelas
 router.post('/', async (req, res) => {
     try {
         const { kelas_id, nis, nama, tanggal_lahir, jenis_kelamin } = req.body;
@@ -52,9 +41,6 @@ router.post('/', async (req, res) => {
             [kelas_id, nis, nama, tanggal_lahir || null, jenis_kelamin]
         );
 
-        // Otomatis buat baris nilai kosong untuk siswa baru, supaya langsung muncul di halaman Akademik
-        await pool.query('INSERT INTO nilai (siswa_id) VALUES (?)', [result.insertId]);
-
         return res.status(201).json({ message: 'Siswa berhasil ditambahkan.', id: result.insertId });
     } catch (err) {
         console.error(err);
@@ -62,7 +48,6 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Edit data siswa (NIS, nama, tanggal lahir, jenis kelamin)
 router.put('/:id', async (req, res) => {
     try {
         const { nis, nama, tanggal_lahir, jenis_kelamin } = req.body;
@@ -83,7 +68,6 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Hapus siswa
 router.delete('/:id', async (req, res) => {
     try {
         await pool.query('DELETE FROM siswa WHERE id = ?', [req.params.id]);
@@ -94,10 +78,6 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-// Ubah status absensi siswa pada tanggal tertentu
-// Pakai "INSERT ... ON DUPLICATE KEY UPDATE" supaya:
-// - kalau belum ada data di tanggal itu -> dibuat baru
-// - kalau sudah ada -> tinggal di-update statusnya
 router.put('/:id/absensi', async (req, res) => {
     try {
         const { tanggal, status } = req.body;
